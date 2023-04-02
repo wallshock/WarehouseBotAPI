@@ -5,23 +5,17 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 
-object BotStatusManager {
-  def apply(id: Array[String]): BotStatusManager = {
-    val botStatuses = mutable.HashMap[String, BotStatus]()
-    for (botId <- id) {
-      botStatuses += (botId -> new BotStatus(None,None,None,None,None))
-    }
-    val eventMap = mutable.HashMap[String,List[BotEvent]]()
-    for (botId <- id) {
-      eventMap += (botId -> List.empty[BotEvent])
-    }
-    new BotStatusManager(botStatuses,eventMap)
+
+class BotStatusManager(id: Array[String]) extends BotStatusReporter{
+  private val botStatuses = mutable.HashMap[String, BotStatus]()
+  for (botId <- id) {
+    botStatuses += (botId -> new BotStatus(None, Some(0), Some(false), None, Some((0,0))))
+  }
+  private val eventMap = mutable.HashMap[String, List[BotEvent]]()
+  for (botId <- id) {
+    eventMap += (botId -> List.empty[BotEvent])
   }
 
-
-}
-
-class BotStatusManager(botStatuses: mutable.HashMap[String, BotStatus], eventMap: mutable.HashMap[String, List[BotEvent]]) extends BotStatusReporter{
   private val logger = LoggerFactory.getLogger(classOf[BotStatusManager])
   override def getBotStatus(botId: String): Option[BotStatus] = {
     botStatuses.get(botId) match {
@@ -38,6 +32,13 @@ class BotStatusManager(botStatuses: mutable.HashMap[String, BotStatus], eventMap
       case None =>
         logger.error(s"Error with getBotStatus: Bot with ID $botId not found.")
         None
+    }
+  }
+  //method for tests
+  def getLogs(botId:String): List[BotEvent] = {
+    eventMap.get(botId) match {
+      case Some(logList) =>
+        logList
     }
   }
 
