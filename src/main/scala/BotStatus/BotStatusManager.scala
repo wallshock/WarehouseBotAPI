@@ -1,12 +1,8 @@
 package BotStatus
-
 import Traits.LogBatchSender.BotLogBatch
 import Traits.{BotEvent, BotStatusReporter, LogBatchSender}
-
-import scala.collection.mutable.HashMap
 import org.slf4j.LoggerFactory
 
-import java.time.LocalDateTime
 import scala.collection.mutable
 
 object BotStatusManager {
@@ -26,12 +22,7 @@ object BotStatusManager {
 }
 
 class BotStatusManager(botStatuses: mutable.HashMap[String, BotStatus], eventMap: mutable.HashMap[String, List[BotEvent]]) extends BotStatusReporter{
-
-
   private val logger = LoggerFactory.getLogger(classOf[BotStatusManager])
-
-
-
   override def getBotStatus(botId: String): Option[BotStatus] = {
     botStatuses.get(botId) match {
       case Some(botStatus) =>
@@ -53,7 +44,7 @@ class BotStatusManager(botStatuses: mutable.HashMap[String, BotStatus], eventMap
   def sendLogs(botId: String): Unit = {
     eventMap.get(botId) match {
       case Some(logList) =>
-        //LogBatchSender.sendLogBatch(botId, logList)
+        //LogBatchSender.sendLogBatch(botId, BotLogBatch(logList))
         eventMap.update(botId, List.empty[BotEvent])
       case None =>
       //send some error message

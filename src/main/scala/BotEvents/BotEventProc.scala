@@ -25,7 +25,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
               timestampPosition = timestamp
             }
           }
-        //jak cos poszlo nie tak to mamy to w logach w botStatusManager
+          //if something went wrong, we can find it in the logs in the botStatusManager.
         case DestinationChanged(_, timestamp, _, _, botId, x, y) =>
           if (isNewerTimestamp(timestamp, timestampDestination)) {
             if (botStatusManager.updateDestination(botId, x, y))
@@ -72,7 +72,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
     }
 
     def isNewerTimestamp(newTimestamp: String, oldTimestamp: String): Boolean = {
-      if (oldTimestamp.isEmpty) true
+      if (oldTimestamp==null) true
       else {
         val newDateTime = LocalDateTime.parse(newTimestamp)
         val oldDateTime = LocalDateTime.parse(oldTimestamp)

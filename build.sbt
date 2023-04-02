@@ -7,3 +7,5 @@ lazy val root = (project in file("."))
     name := "untitled"
   )
 libraryDependencies += "org.slf4j" % "slf4j-api" % "2.0.5"
+libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.15" % Test
+libraryDependencies += "org.scalamock" %% "scalamock" % "5.2.0" % Test
