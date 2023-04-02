@@ -9,8 +9,7 @@ import scala.collection.mutable
 
 class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor {
 
-  private val botTimestamps = mutable.HashMap[String, BotEventTimestamps]()
-
+  var botTimestamps = mutable.HashMap[String, BotEventTimestamps]()
   var timestampPosition:String = _
   var  timestampDestination:String = _
   var timestampContainer:String = _
@@ -18,7 +17,6 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
   var timestampBatteryLevel:String = _
 
   def process(botEvent: BotEvent): Unit = {
-
     if (isOlderThan5Minutes(botEvent.timestamp)) {
       //we just ignore it
     } else {
@@ -29,7 +27,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
           if (isNewerTimestamp(timestamp, timestampPosition)) { //if we receive the same event twice then it wont be processed because it wont have newer timestamp
             if (botStatusManager.updatePosition(botId, x, y)) {
               botStatusManager.putBotLog(botId, botEvent)
-              updateTimestampPos(botId,timestampPosition)
+              updateTimestampPos(botId, timestamp)
             }
           }
         //if something went wrong, we can find it in the logs in the botStatusManager.
@@ -39,7 +37,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
           if (isNewerTimestamp(timestamp, timestampDestination)) {
             if (botStatusManager.updateDestination(botId, x, y))
               botStatusManager.putBotLog(botId, botEvent)
-            updateTimestampDest(botId,timestampDestination)
+            updateTimestampDest(botId, timestamp)
           }
         case ContainerPickedUp(_, timestamp, _, _, botId, containerId) =>
           addBotTimestamp(botId)
@@ -47,15 +45,15 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
           if (isNewerTimestamp(timestamp, timestampContainer)) {
             if (botStatusManager.pickupContainer(botId, containerId))
               botStatusManager.putBotLog(botId, botEvent)
-            updateTimestampCont(botId,timestampContainer)
+            updateTimestampCont(botId, timestamp)
           }
         case ContainerDroppedOff(_, timestamp, _, _, botId, containerId) =>
           addBotTimestamp(botId)
           setTimestamps(botId)
-          if (isNewerTimestamp(timestamp, timestampContainer)) {
+          if (isNewerTimestamp(timestamp, timestamp)) {
             if (botStatusManager.dropoffContainer(botId, containerId))
               botStatusManager.putBotLog(botId, botEvent)
-            updateTimestampCont(botId,timestampContainer)
+            updateTimestampCont(botId, timestamp)
           }
         case ChargingStarted(_, timestamp, _, _, botId, chargerId) =>
           addBotTimestamp(botId)
@@ -63,7 +61,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
           if (isNewerTimestamp(timestamp, timestampCharging)) {
             if (botStatusManager.startCharging(botId, chargerId)) {
               botStatusManager.putBotLog(botId, botEvent)
-              updateTimestampCharge(botId,timestampCharging)
+              updateTimestampCharge(botId, timestamp)
               botStatusManager.sendLogs(botId)
             }
           }
@@ -74,7 +72,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
           if (isNewerTimestamp(timestamp, timestampCharging)) {
             if (botStatusManager.endCharging(botId, chargerId))
               botStatusManager.putBotLog(botId, botEvent)
-            updateTimestampCharge(botId,timestampCharging)
+            updateTimestampCharge(botId, timestamp)
           }
 
         case BatteryLevelChanged(_, timestamp, _, _, botId, batteryLevel) =>
@@ -83,26 +81,28 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
           if (isNewerTimestamp(timestamp, timestampBatteryLevel)) {
             if (botStatusManager.updateBatteryLevel(botId, batteryLevel))
               botStatusManager.putBotLog(botId, botEvent)
-            updateTimestampBattery(botId,timestampBatteryLevel)
+            updateTimestampBattery(botId, timestamp)
           }
 
         case _ =>
       }
     }
 
+
     def isNewerTimestamp(newTimestamp: String, oldTimestamp: String): Boolean = {
-      if (oldTimestamp == null) true
-      else {
+      if (oldTimestamp == "") {
+        true
+      } else {
         val formatter = DateTimeFormatter.ISO_INSTANT
-        val newDateTime = Instant.from(formatter.parse(newTimestamp)).atZone(ZoneId.systemDefault()).toLocalDateTime()
-        val oldDateTime = Instant.from(formatter.parse(oldTimestamp)).atZone(ZoneId.systemDefault()).toLocalDateTime()
+        val newDateTime = Instant.from(formatter.parse(newTimestamp)).atZone(ZoneId.systemDefault()).toLocalDateTime
+        val oldDateTime = Instant.from(formatter.parse(oldTimestamp)).atZone(ZoneId.systemDefault()).toLocalDateTime
         newDateTime.isAfter(oldDateTime)
       }
     }
 
     def isOlderThan5Minutes(timestamp: String): Boolean = {
       val formatter = DateTimeFormatter.ISO_INSTANT
-      val parsedTimestamp = Instant.from(formatter.parse(timestamp)).atZone(ZoneId.systemDefault()).toLocalDateTime()
+      val parsedTimestamp = Instant.from(formatter.parse(timestamp)).atZone(ZoneId.systemDefault()).toLocalDateTime
       val now = LocalDateTime.now()
       now.isAfter(parsedTimestamp.plus(Duration.ofMinutes(5)))
     }
@@ -128,6 +128,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
     botTimestamps.get(botId) match {
       case Some(botTimestamp) =>
         botTimestamp.timestampPosition = timestampPosition
+        botTimestamps.update(botId,botTimestamp)
     }
   }
 
@@ -135,6 +136,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
     botTimestamps.get(botId) match {
       case Some(botTimestamp) =>
         botTimestamp.timestampDestination = timestampDest
+        botTimestamps.update(botId,botTimestamp)
     }
   }
 
@@ -142,6 +144,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
     botTimestamps.get(botId) match {
       case Some(botTimestamp) =>
         botTimestamp.timestampContainer = timestampCont
+        botTimestamps.update(botId,botTimestamp)
     }
   }
 
@@ -149,6 +152,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
       botTimestamps.get(botId) match {
         case Some(botTimestamp) =>
           botTimestamp.timestampCharging = timestampCharg
+          botTimestamps.update(botId,botTimestamp)
       }
     }
 
@@ -156,6 +160,7 @@ class BotEventProc(botStatusManager: BotStatusManager) extends BotEventProcessor
         botTimestamps.get(botId) match {
           case Some(botTimestamp) =>
             botTimestamp.timestampBatteryLevel = timestampBat
+            botTimestamps.update(botId,botTimestamp)
         }
       }
 }

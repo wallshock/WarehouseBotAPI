@@ -9,7 +9,7 @@ import scala.collection.mutable
 class BotStatusManager(id: Array[String]) extends BotStatusReporter{
   private val botStatuses = mutable.HashMap[String, BotStatus]()
   for (botId <- id) {
-    botStatuses += (botId -> new BotStatus(None, Some(0), Some(false), None, Some((0,0))))
+    botStatuses += (botId -> new BotStatus(Some((0,0)), Some(0), Some(false), None, Some((0,0))))
   }
   private val eventMap = mutable.HashMap[String, List[BotEvent]]()
   for (botId <- id) {

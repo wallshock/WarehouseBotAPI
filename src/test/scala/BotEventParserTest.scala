@@ -1,5 +1,4 @@
 import BotEvents._
-import org.scalatest
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 class BotEventParserTest extends AnyWordSpec with Matchers {

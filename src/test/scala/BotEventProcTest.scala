@@ -2,10 +2,6 @@ package BotEvents
 
 import BotStatus.BotStatusManager
 import org.scalamock.scalatest.MockFactory
-import org.scalatest.funsuite.AnyFunSuite
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import java.time.{Duration, Instant, LocalDateTime}
@@ -55,23 +51,28 @@ class BotEventProcTest extends AnyWordSpec with MockFactory {
     assert(!botStatusManager.getLogs("bot1").contains(event2))
   }
 
-  "update Timestamps correctly" in {
+  "update Timestamps correctly for different bots" in {
     val arr: Array[String] = Array("bot1", "bot2")
     val botStatusManager = new BotStatusManager(arr)
     val botEventProc = new BotEventProc(botStatusManager)
-
+    val timestamp = Instant.now().toString
     val event1 = PositionChanged("avc", timestamp, "WR4A", botId = "bot1", x = 0, y = 0)
     val event2 = PositionChanged("avc", timestamp, "WR4A", botId = "bot1", x = 1, y = 1)
 
-    val event1 = PositionChanged("avc", timestamp, "WR4A", botId = "bot2", x = 0, y = 0)
-    val event2 = PositionChanged("avc", timestamp, "WR4A", botId = "bot2", x = 1, y = 1)
+    val event3 = PositionChanged("avc", timestamp, "WR4A", botId = "bot2", x = 1, y = 1)
+    val event4 = PositionChanged("avc", timestamp, "WR4A", botId = "bot2", x = 1, y = 2)
 
     botEventProc.process(event1)
     botEventProc.process(event2)
+    botEventProc.process(event3)
+    botEventProc.process(event4)
 
     assert(botStatusManager.getBotStatus("bot1").get.currentPos.contains((0, 0)))
+    assert(botStatusManager.getBotStatus("bot2").get.currentPos.contains((1, 1)))
     assert(botStatusManager.getLogs("bot1").contains(event1))
     assert(!botStatusManager.getLogs("bot1").contains(event2))
+    assert(botStatusManager.getLogs("bot2").contains(event3))
+    assert(!botStatusManager.getLogs("bot2").contains(event4))
   }
 
 
