@@ -1,9 +1,9 @@
 package BotStatus
 
 class BotStatus(
-                 var currentPos: (Int, Int),
-                 var batteryLevel: Int,
-                 var isCharging: Boolean,
+                 var currentPos: Option[(Int, Int)],
+                 var batteryLevel: Option[Int],
+                 var isCharging: Option[Boolean],
                  var carriedContainer: Option[String],
                  var currentTarget: Option[(Int, Int)]
                )
