@@ -6,3 +6,4 @@ lazy val root = (project in file("."))
   .settings(
     name := "untitled"
   )
+libraryDependencies += "org.slf4j" % "slf4j-api" % "2.0.5"
